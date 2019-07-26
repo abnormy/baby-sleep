@@ -8,24 +8,10 @@
 <link href="https://unpkg.com/gijgo@1.9.13/css/gijgo.min.css" rel="stylesheet" type="text/css" />
 </head>
 <body>
-<div class="container">
-    <div id="info"></div>
-    <div style="margin: 1em 0 1em 0"></div>
-    <button type="button" class="btn btn-primary btn-block" data-target="#recordSleep" data-toggle="collapse">Записать сон</button>
-    <div style="margin: 1em 0 1em 0"></div>
-    <div id="recordSleep" class="collapse">
-        <input id="recordSleepDate" />
-        <div style="margin: 1em 0 1em 0"></div>
-        <input id="recordSleepTimeStart"/>
-        <div style="margin: 1em 0 1em 0"></div>
-        <input id="recordSleepTimeEnd" />
-        <div style="margin: 1em 0 1em 0"></div>
-        <button type="button" class="btn btn-secondary btn-block">Записать</button>
-    </div>
-    <div style="margin: 1em 0 1em 0"></div>
+<div id="root" class="container">
 </div>
-<script crossorigin src="https://unpkg.com/react@16/umd/react.production.min.js"></script>
-<script crossorigin src="https://unpkg.com/react-dom@16/umd/react-dom.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react@16/umd/react.development.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@16/umd/react-dom.development.js"></script>
 <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
@@ -34,23 +20,6 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment.min.js" type="text/javascript"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/countdown/2.6.0/countdown.min.js"></script>
 <script>
-$('#recordSleepTimeStart').timepicker({
-    uiLibrary: 'bootstrap4',
-    locale: 'ru-ru',
-    mode: '24hr'
-});
-$('#recordSleepTimeEnd').timepicker({
-    uiLibrary: 'bootstrap4',
-    locale: 'ru-ru',
-    mode: '24hr'
-});
-$('#recordSleepDate').datepicker({
-    uiLibrary: 'bootstrap4',
-    locale: 'ru-ru',
-    format: 'dd-mm-yyyy',
-    value: moment().format("DD-MM-YYYY")
-});
-
 const babySleepInfo = {
     birthDate: "16-05-2019",
     sleepSch: [
@@ -80,6 +49,24 @@ const babySleepInfo = {
             totalDuration: [300, 360],
             totalNight: [600, 720],
             totalAll: [840, 1020]
+        },
+        {
+            interval: [4, 5],
+            awake: [90, 120],
+            count: [3, 4],
+            duration: [30, 120],
+            totalDuration: [240, 300],
+            totalNight: [600, 720],
+            totalAll: [840, 960]
+        },
+        {
+            interval: [5, 7],
+            awake: [105, 135],
+            count: [3, 3],
+            duration: [30, 120],
+            totalDuration: [180, 240],
+            totalNight: [600, 720],
+            totalAll: [780, 960]
         }
     ]
 };
