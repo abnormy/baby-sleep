@@ -3,9 +3,9 @@ const useEffect = React.useEffect;
 const useRef = React.useRef;
 const useMemo = React.useMemo;
 
-const useStateWithLocalStorage = localStorageKey => {
+const useStateWithLocalStorage = (localStorageKey, defaultValue = []) => {
     const [value, setValue] = useState(
-      JSON.parse(localStorage.getItem(localStorageKey)) || []
+      JSON.parse(localStorage.getItem(localStorageKey)) || defaultValue
     );
   
     useEffect(() => {
@@ -21,7 +21,8 @@ const humTime = min => {
         return countdown(now.clone().subtract(min, "minutes").toDate(), now.toDate(), countdown.MINUTES | countdown.HOURS).toString();
     }
     
-    return `${min} м.`;
+    const minCut = Math.floor(min);
+    return `${minCut} м.`;
 };
 
 const Info = ({row}) => (
@@ -36,25 +37,13 @@ const SpaceFiller = () => (
 );
 
 const DateTimePicker = ({dateTime, setDateTime}) => {
-    const inputRef = useRef(null);
-
-    useEffect(() => {
-        $(inputRef.current).datetimepicker({
-            uiLibrary: 'bootstrap4',
-            modal: true,
-            format: 'dd-mm-yyyy HH:MM',
-            locale: 'ru-ru',
-            value: dateTime,
-            mode: '24hr',
-            
-            change: function (e) {
-                setDateTime(e.target.value);
-            }
-        });
-    }, []);
+    const handleChange = e => {
+        var parsed = moment(e.target.value, "YYYY-MM-DDTHH:mm");
+        setDateTime(parsed.format("DD-MM-YYYY HH:mm"));
+    };
 
     return (
-        <input ref={inputRef} />
+        <input type="datetime-local" value={moment(dateTime, "DD-MM-YYYY HH:mm").format("YYYY-MM-DDTHH:mm")} onChange={handleChange} />
     );
 };
 
@@ -223,6 +212,44 @@ const Edit = ({enabled, id, data, setData, setEdit}) => {
     );
 };
 
+const RealtimeSleepTrack = ({addItem}) => {
+    const [trackerInfo, setTrackerInfo] = useStateWithLocalStorage('trackerEnabled', {isEnabled: false});
+    const [isNight, setIsNight] = useState(true);
+
+    const endSleepHandler = () => {
+        const dateTime1 = moment(trackerInfo.startDate).format("DD-MM-YYYY HH:mm");
+        const dateTime2 = moment().format("DD-MM-YYYY HH:mm");
+        const item = {dateTime1, dateTime2, isNight: trackerInfo.isNight, id: Date.now()}
+        setTrackerInfo({isEnabled: false});
+        addItem(item);
+    };
+
+    if (trackerInfo.isEnabled) {
+        return (
+            <div>
+                <p>{`${moment(trackerInfo.startDate).format("DD.MM(HH:mm)")}, прошло ${humTime(moment.duration(moment().diff(moment(trackerInfo.startDate))).asMinutes())}`}</p>
+                <button type="button" className="btn btn-primary btn-block" onClick={endSleepHandler}>Проснуться</button>
+            </div>
+        );
+    }
+    else {
+        return (
+            <div>
+                <div className="form-check form-check-inline">
+                    <input className="form-check-input" type="radio" name="track" value="option1" checked={isNight} onChange={()=>setIsNight(true)}/>
+                    <label className="form-check-label" htmlFor="inlineRadio1">Ночной</label>
+                </div>
+                <div className="form-check form-check-inline">
+                    <input className="form-check-input" type="radio" name="track" value="option2" checked={!isNight} onChange={()=>setIsNight(false)}/>
+                    <label className="form-check-label" htmlFor="inlineRadio2">Дневной</label>
+                </div>
+                <SpaceFiller/>
+                <button type="button" className="btn btn-primary btn-block" onClick={()=>setTrackerInfo({isEnabled: true, startDate: Date.now(), isNight})}>Заснуть</button>
+            </div>
+        );
+    }
+};
+
 const App = () => {
     const [data, setData] = useStateWithLocalStorage('babySleepData');
     const [now, setNow] = useState(moment());
@@ -258,6 +285,9 @@ const App = () => {
 
     return (
         <React.Fragment>
+            <SpaceFiller/>
+            <RealtimeSleepTrack addItem={addSleepHandler}/>
+            <SpaceFiller/>
             <Info row={globalInfo} />
             <SpaceFiller/>
             <button type="button" className="btn btn-primary btn-block" data-target="#recordSleep" data-toggle="collapse">Записать сон</button>

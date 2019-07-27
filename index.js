@@ -8,7 +8,9 @@ var useRef = React.useRef;
 var useMemo = React.useMemo;
 
 var useStateWithLocalStorage = function useStateWithLocalStorage(localStorageKey) {
-    var _useState = useState(JSON.parse(localStorage.getItem(localStorageKey)) || []),
+    var defaultValue = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [];
+
+    var _useState = useState(JSON.parse(localStorage.getItem(localStorageKey)) || defaultValue),
         _useState2 = _slicedToArray(_useState, 2),
         value = _useState2[0],
         setValue = _useState2[1];
@@ -26,36 +28,37 @@ var humTime = function humTime(min) {
         return countdown(now.clone().subtract(min, "minutes").toDate(), now.toDate(), countdown.MINUTES | countdown.HOURS).toString();
     }
 
-    return min + ' \u043C.';
+    var minCut = Math.floor(min);
+    return minCut + " \u043C.";
 };
 
 var Info = function Info(_ref) {
     var row = _ref.row;
     return React.createElement(
-        'div',
+        "div",
         null,
         React.createElement(
-            'h5',
+            "h5",
             null,
-            '\u0412\u043E\u0437\u0440\u0430\u0441\u0442: ',
+            "\u0412\u043E\u0437\u0440\u0430\u0441\u0442: ",
             React.createElement(
-                'span',
+                "span",
                 null,
                 row.interval[0],
-                ' - ',
+                " - ",
                 row.interval[1] - 1,
-                ' \u043C\u0435\u0441\u044F\u0446\u0430'
+                " \u043C\u0435\u0441\u044F\u0446\u0430"
             )
         ),
         React.createElement(
-            'h5',
+            "h5",
             null,
-            '\u0412\u0411 \u043C\u0435\u0436\u0434\u0443 \u0441\u043D\u0430\u043C\u0438: ',
+            "\u0412\u0411 \u043C\u0435\u0436\u0434\u0443 \u0441\u043D\u0430\u043C\u0438: ",
             React.createElement(
-                'span',
+                "span",
                 null,
                 humTime(row.awake[0]),
-                ' - ',
+                " - ",
                 humTime(row.awake[1])
             )
         )
@@ -63,31 +66,19 @@ var Info = function Info(_ref) {
 };
 
 var SpaceFiller = function SpaceFiller() {
-    return React.createElement('div', { style: { margin: '1em 0 1em 0' } });
+    return React.createElement("div", { style: { margin: '1em 0 1em 0' } });
 };
 
 var DateTimePicker = function DateTimePicker(_ref2) {
     var dateTime = _ref2.dateTime,
         setDateTime = _ref2.setDateTime;
 
-    var inputRef = useRef(null);
+    var handleChange = function handleChange(e) {
+        var parsed = moment(e.target.value, "YYYY-MM-DDTHH:mm");
+        setDateTime(parsed.format("DD-MM-YYYY HH:mm"));
+    };
 
-    useEffect(function () {
-        $(inputRef.current).datetimepicker({
-            uiLibrary: 'bootstrap4',
-            modal: true,
-            format: 'dd-mm-yyyy HH:MM',
-            locale: 'ru-ru',
-            value: dateTime,
-            mode: '24hr',
-
-            change: function change(e) {
-                setDateTime(e.target.value);
-            }
-        });
-    }, []);
-
-    return React.createElement('input', { ref: inputRef });
+    return React.createElement("input", { type: "datetime-local", value: moment(dateTime, "DD-MM-YYYY HH:mm").format("YYYY-MM-DDTHH:mm"), onChange: handleChange });
 };
 
 var AddNewSleep = function AddNewSleep(_ref3) {
@@ -121,37 +112,37 @@ var AddNewSleep = function AddNewSleep(_ref3) {
     };
 
     return React.createElement(
-        'div',
+        "div",
         { id: id },
         React.createElement(DateTimePicker, { dateTime: dateTime1, setDateTime: setDateTime1 }),
         React.createElement(SpaceFiller, null),
         React.createElement(DateTimePicker, { dateTime: dateTime2, setDateTime: setDateTime2 }),
         React.createElement(SpaceFiller, null),
         React.createElement(
-            'div',
-            { className: 'form-check form-check-inline' },
-            React.createElement('input', { className: 'form-check-input', type: 'radio', name: 'inlineRadioOptions', id: 'inlineRadio1', value: 'option1', checked: isNight, onChange: handleSleepType }),
+            "div",
+            { className: "form-check form-check-inline" },
+            React.createElement("input", { className: "form-check-input", type: "radio", name: "inlineRadioOptions", id: "inlineRadio1", value: "option1", checked: isNight, onChange: handleSleepType }),
             React.createElement(
-                'label',
-                { className: 'form-check-label', htmlFor: 'inlineRadio1' },
-                '\u041D\u043E\u0447\u043D\u043E\u0439'
+                "label",
+                { className: "form-check-label", htmlFor: "inlineRadio1" },
+                "\u041D\u043E\u0447\u043D\u043E\u0439"
             )
         ),
         React.createElement(
-            'div',
-            { className: 'form-check form-check-inline' },
-            React.createElement('input', { className: 'form-check-input', type: 'radio', name: 'inlineRadioOptions', id: 'inlineRadio2', value: 'option2', checked: !isNight, onChange: handleSleepType }),
+            "div",
+            { className: "form-check form-check-inline" },
+            React.createElement("input", { className: "form-check-input", type: "radio", name: "inlineRadioOptions", id: "inlineRadio2", value: "option2", checked: !isNight, onChange: handleSleepType }),
             React.createElement(
-                'label',
-                { className: 'form-check-label', htmlFor: 'inlineRadio2' },
-                '\u0414\u043D\u0435\u0432\u043D\u043E\u0439'
+                "label",
+                { className: "form-check-label", htmlFor: "inlineRadio2" },
+                "\u0414\u043D\u0435\u0432\u043D\u043E\u0439"
             )
         ),
         React.createElement(SpaceFiller, null),
         React.createElement(
-            'button',
-            { type: 'button', className: 'btn btn-secondary btn-block', onClick: handleAdd },
-            '\u0417\u0430\u043F\u0438\u0441\u0430\u0442\u044C'
+            "button",
+            { type: "button", className: "btn btn-secondary btn-block", onClick: handleAdd },
+            "\u0417\u0430\u043F\u0438\u0441\u0430\u0442\u044C"
         )
     );
 };
@@ -227,39 +218,39 @@ var ProgressBars = function ProgressBars(_ref4) {
         React.Fragment,
         null,
         React.createElement(
-            'p',
+            "p",
             null,
-            '\u041D\u043E\u0447\u043D\u043E\u0439 \u0441\u043E\u043D(',
+            "\u041D\u043E\u0447\u043D\u043E\u0439 \u0441\u043E\u043D(",
             humTime(row.totalNight[0]),
-            ' - ',
+            " - ",
             humTime(row.totalNight[1]),
-            '):'
+            "):"
         ),
         React.createElement(
-            'div',
-            { className: 'progress' },
+            "div",
+            { className: "progress" },
             React.createElement(
-                'div',
-                { className: 'progress-bar', style: { width: nightProgressData.percent + '%' }, role: 'progressbar' },
+                "div",
+                { className: "progress-bar", style: { width: nightProgressData.percent + '%' }, role: "progressbar" },
                 humTime(nightProgressData.totalNightSleep)
             )
         ),
         React.createElement(SpaceFiller, null),
         React.createElement(
-            'p',
+            "p",
             null,
-            '\u0414\u043D\u0435\u0432\u043D\u043E\u0439 \u0441\u043E\u043D(',
+            "\u0414\u043D\u0435\u0432\u043D\u043E\u0439 \u0441\u043E\u043D(",
             humTime(row.totalDuration[0]),
-            ' - ',
+            " - ",
             humTime(row.totalDuration[1]),
-            '):'
+            "):"
         ),
         React.createElement(
-            'div',
-            { className: 'progress' },
+            "div",
+            { className: "progress" },
             React.createElement(
-                'div',
-                { className: 'progress-bar', style: { width: dayProgressData.percent + '%' }, role: 'progressbar' },
+                "div",
+                { className: "progress-bar", style: { width: dayProgressData.percent + '%' }, role: "progressbar" },
                 humTime(dayProgressData.totalDaySleep)
             )
         )
@@ -286,34 +277,34 @@ var RecordGrid = function RecordGrid(_ref5) {
         }
 
         return React.createElement(
-            'div',
-            { className: 'row', key: id, style: style },
+            "div",
+            { className: "row", key: id, style: style },
             React.createElement(
-                'div',
-                { className: 'col-3 text-center align-self-center' },
+                "div",
+                { className: "col-3 text-center align-self-center" },
                 startDate
             ),
             React.createElement(
-                'div',
-                { className: 'col-4 text-center align-self-center' },
+                "div",
+                { className: "col-4 text-center align-self-center" },
                 duration
             ),
             React.createElement(
-                'div',
-                { className: 'col-2' },
+                "div",
+                { className: "col-2" },
                 React.createElement(
-                    'button',
-                    { type: 'button', className: 'btn btn-warning btn-sm', onClick: editHandler },
-                    '\u0420\u0435\u0434.'
+                    "button",
+                    { type: "button", className: "btn btn-warning btn-sm", onClick: editHandler },
+                    "\u0420\u0435\u0434."
                 )
             ),
             React.createElement(
-                'div',
-                { className: 'col-2' },
+                "div",
+                { className: "col-2" },
                 React.createElement(
-                    'button',
-                    { type: 'button', className: 'btn btn-danger btn-sm', onClick: removeHandler },
-                    '\u0423\u0434\u043B.'
+                    "button",
+                    { type: "button", className: "btn btn-danger btn-sm", onClick: removeHandler },
+                    "\u0423\u0434\u043B."
                 )
             )
         );
@@ -342,15 +333,15 @@ var RecordGrid = function RecordGrid(_ref5) {
 
     if (grid.length > 0) {
         return React.createElement(
-            'div',
+            "div",
             null,
             grid
         );
     } else {
         return React.createElement(
-            'h5',
-            { className: 'text-center' },
-            '\u041D\u0435\u0442 \u0437\u0430\u043F\u0438\u0441\u0435\u0439'
+            "h5",
+            { className: "text-center" },
+            "\u041D\u0435\u0442 \u0437\u0430\u043F\u0438\u0441\u0435\u0439"
         );
     }
 };
@@ -378,29 +369,105 @@ var Edit = function Edit(_ref7) {
         setData(newData);
     };
 
-    return React.createElement(AddNewSleep, { addSleepHandler: addSleepHandler, date1: el.dateTime1, date2: el.dateTime2, night: el.isNight, id: '' + id });
+    return React.createElement(AddNewSleep, { addSleepHandler: addSleepHandler, date1: el.dateTime1, date2: el.dateTime2, night: el.isNight, id: "" + id });
+};
+
+var RealtimeSleepTrack = function RealtimeSleepTrack(_ref8) {
+    var addItem = _ref8.addItem;
+
+    var _useStateWithLocalSto = useStateWithLocalStorage('trackerEnabled', { isEnabled: false }),
+        _useStateWithLocalSto2 = _slicedToArray(_useStateWithLocalSto, 2),
+        trackerInfo = _useStateWithLocalSto2[0],
+        setTrackerInfo = _useStateWithLocalSto2[1];
+
+    var _useState9 = useState(true),
+        _useState10 = _slicedToArray(_useState9, 2),
+        isNight = _useState10[0],
+        setIsNight = _useState10[1];
+
+    var endSleepHandler = function endSleepHandler() {
+        var dateTime1 = moment(trackerInfo.startDate).format("DD-MM-YYYY HH:mm");
+        var dateTime2 = moment().format("DD-MM-YYYY HH:mm");
+        var item = { dateTime1: dateTime1, dateTime2: dateTime2, isNight: trackerInfo.isNight, id: Date.now() };
+        setTrackerInfo({ isEnabled: false });
+        addItem(item);
+    };
+
+    if (trackerInfo.isEnabled) {
+        return React.createElement(
+            "div",
+            null,
+            React.createElement(
+                "p",
+                null,
+                moment(trackerInfo.startDate).format("DD.MM(HH:mm)") + ", \u043F\u0440\u043E\u0448\u043B\u043E " + humTime(moment.duration(moment().diff(moment(trackerInfo.startDate))).asMinutes())
+            ),
+            React.createElement(
+                "button",
+                { type: "button", className: "btn btn-primary btn-block", onClick: endSleepHandler },
+                "\u041F\u0440\u043E\u0441\u043D\u0443\u0442\u044C\u0441\u044F"
+            )
+        );
+    } else {
+        return React.createElement(
+            "div",
+            null,
+            React.createElement(
+                "div",
+                { className: "form-check form-check-inline" },
+                React.createElement("input", { className: "form-check-input", type: "radio", name: "track", value: "option1", checked: isNight, onChange: function onChange() {
+                        return setIsNight(true);
+                    } }),
+                React.createElement(
+                    "label",
+                    { className: "form-check-label", htmlFor: "inlineRadio1" },
+                    "\u041D\u043E\u0447\u043D\u043E\u0439"
+                )
+            ),
+            React.createElement(
+                "div",
+                { className: "form-check form-check-inline" },
+                React.createElement("input", { className: "form-check-input", type: "radio", name: "track", value: "option2", checked: !isNight, onChange: function onChange() {
+                        return setIsNight(false);
+                    } }),
+                React.createElement(
+                    "label",
+                    { className: "form-check-label", htmlFor: "inlineRadio2" },
+                    "\u0414\u043D\u0435\u0432\u043D\u043E\u0439"
+                )
+            ),
+            React.createElement(SpaceFiller, null),
+            React.createElement(
+                "button",
+                { type: "button", className: "btn btn-primary btn-block", onClick: function onClick() {
+                        return setTrackerInfo({ isEnabled: true, startDate: Date.now(), isNight: isNight });
+                    } },
+                "\u0417\u0430\u0441\u043D\u0443\u0442\u044C"
+            )
+        );
+    }
 };
 
 var App = function App() {
-    var _useStateWithLocalSto = useStateWithLocalStorage('babySleepData'),
-        _useStateWithLocalSto2 = _slicedToArray(_useStateWithLocalSto, 2),
-        data = _useStateWithLocalSto2[0],
-        setData = _useStateWithLocalSto2[1];
+    var _useStateWithLocalSto3 = useStateWithLocalStorage('babySleepData'),
+        _useStateWithLocalSto4 = _slicedToArray(_useStateWithLocalSto3, 2),
+        data = _useStateWithLocalSto4[0],
+        setData = _useStateWithLocalSto4[1];
 
-    var _useState9 = useState(moment()),
-        _useState10 = _slicedToArray(_useState9, 2),
-        now = _useState10[0],
-        setNow = _useState10[1];
-
-    var _useState11 = useState(false),
+    var _useState11 = useState(moment()),
         _useState12 = _slicedToArray(_useState11, 2),
-        edit = _useState12[0],
-        setEdit = _useState12[1];
+        now = _useState12[0],
+        setNow = _useState12[1];
 
-    var _useState13 = useState(0),
+    var _useState13 = useState(false),
         _useState14 = _slicedToArray(_useState13, 2),
-        id = _useState14[0],
-        setId = _useState14[1];
+        edit = _useState14[0],
+        setEdit = _useState14[1];
+
+    var _useState15 = useState(0),
+        _useState16 = _slicedToArray(_useState15, 2),
+        id = _useState16[0],
+        setId = _useState16[1];
 
     var addSleepHandler = function addSleepHandler(sleepItem) {
         setData([].concat(_toConsumableArray(data), [sleepItem]));
@@ -432,38 +499,41 @@ var App = function App() {
     return React.createElement(
         React.Fragment,
         null,
+        React.createElement(SpaceFiller, null),
+        React.createElement(RealtimeSleepTrack, { addItem: addSleepHandler }),
+        React.createElement(SpaceFiller, null),
         React.createElement(Info, { row: globalInfo }),
         React.createElement(SpaceFiller, null),
         React.createElement(
-            'button',
-            { type: 'button', className: 'btn btn-primary btn-block', 'data-target': '#recordSleep', 'data-toggle': 'collapse' },
-            '\u0417\u0430\u043F\u0438\u0441\u0430\u0442\u044C \u0441\u043E\u043D'
+            "button",
+            { type: "button", className: "btn btn-primary btn-block", "data-target": "#recordSleep", "data-toggle": "collapse" },
+            "\u0417\u0430\u043F\u0438\u0441\u0430\u0442\u044C \u0441\u043E\u043D"
         ),
         React.createElement(SpaceFiller, null),
         React.createElement(
-            'div',
-            { id: 'recordSleep', className: 'collapse' },
+            "div",
+            { id: "recordSleep", className: "collapse" },
             React.createElement(AddNewSleep, { addSleepHandler: addSleepHandler, id: "add" })
         ),
         React.createElement(SpaceFiller, null),
         React.createElement(ProgressBars, { data: data, row: globalInfo, now: now }),
         React.createElement(SpaceFiller, null),
         React.createElement(
-            'div',
-            { className: 'btn-group btn-block', role: 'group' },
+            "div",
+            { className: "btn-group btn-block", role: "group" },
             React.createElement(
-                'button',
-                { type: 'button', className: 'btn btn-secondary', onClick: bck },
+                "button",
+                { type: "button", className: "btn btn-secondary", onClick: bck },
                 now.clone().add(-1, 'day').format('DD.MM')
             ),
             React.createElement(
-                'button',
-                { type: 'button', className: 'btn btn-secondary', onClick: tdy },
-                '\u0421\u0435\u0433\u043E\u0434\u043D\u044F'
+                "button",
+                { type: "button", className: "btn btn-secondary", onClick: tdy },
+                "\u0421\u0435\u0433\u043E\u0434\u043D\u044F"
             ),
             React.createElement(
-                'button',
-                { type: 'button', className: 'btn btn-secondary', onClick: fwd },
+                "button",
+                { type: "button", className: "btn btn-secondary", onClick: fwd },
                 now.clone().add(1, 'day').format('DD.MM')
             )
         ),
