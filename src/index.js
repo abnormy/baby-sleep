@@ -132,8 +132,26 @@ const ProgressBars = ({data, row, now}) => {
         return {percent: 100 - Math.floor(percent), totalDaySleep};
     };
 
+    const processDayCount = d => {
+        const totalDaySleepCount = d
+            .filter(i => isDayDataForProgress(i, now))
+            .reduce((sum, i) => sum + 1, 0);
+
+        const possibleSleepCount = row.count[0];
+        const left = possibleSleepCount - totalDaySleepCount;
+
+        if (left <= 0) {
+            return {percent: 100, totalDaySleepCount};
+        }
+
+        const percent = left * 100 / possibleSleepCount;
+
+        return {percent: 100 - Math.floor(percent), totalDaySleepCount};
+    };
+
     const nightProgressData = useMemo(() => processNight(data), [data, now]);
     const dayProgressData = useMemo(() => processDay(data), [data, now]);
+    const dayProgressCountData = useMemo(() => processDayCount(data), [data, now]);
 
     return (
         <React.Fragment>
@@ -146,12 +164,21 @@ const ProgressBars = ({data, row, now}) => {
             <div className="progress">
                 <div className="progress-bar" style={{width: dayProgressData.percent + '%'}} role="progressbar">{humTime(dayProgressData.totalDaySleep)}</div>
             </div>
+            <SpaceFiller/>
+            <p>Дневной сон кол-во({row.count[0]} - {row.count[1]}):</p>
+            <div className="progress">
+                <div className="progress-bar" style={{width: dayProgressCountData.percent + '%'}} role="progressbar">{dayProgressCountData.totalDaySleepCount} раз</div>
+            </div>
+            <SpaceFiller/>
+            <div>
+                <span>Общий сон: <span>{humTime(nightProgressData.totalNightSleep + dayProgressData.totalDaySleep)}</span></span>
+            </div>
         </React.Fragment>
     );
 };
 
 const RecordGrid = ({now, data, setData, handleEdit}) => {
-    const row = ({id, startDate, duration, isNight, editHandler, removeHandler}) => {
+    const row = ({id, startDate, endDate, duration, isNight, editHandler, removeHandler}) => {
         let style = {marginTop: "2px"};
         if (isNight){
             style = {...style, backgroundColor: "blanchedalmond"};
@@ -159,10 +186,13 @@ const RecordGrid = ({now, data, setData, handleEdit}) => {
 
         return (
             <div className="row" key={id} style={style}>
-                <div className="col-3 text-center align-self-center">
+                <div className="col-2 text-center align-self-center">
                     {startDate}
                 </div>
-                <div className="col-4 text-center align-self-center">
+                <div className="col-2 text-center align-self-center">
+                    {endDate}
+                </div>
+                <div className="col-3 text-center align-self-center">
                     {duration}
                 </div>
                 <div className="col-2">
@@ -180,6 +210,7 @@ const RecordGrid = ({now, data, setData, handleEdit}) => {
         .map(i => row({
             id: i.id,
             startDate: moment(i.dateTime1, "DD-MM-YYYY HH:mm").format("HH:mm"),
+            endDate: moment(i.dateTime2, "DD-MM-YYYY HH:mm").format("HH:mm"),
             duration: humTime(timeOfSleep(i)),
             isNight: i.isNight,
             editHandler: e => {e.preventDefault(); handleEdit(i.id);},
@@ -210,44 +241,6 @@ const Edit = ({enabled, id, data, setData, setEdit}) => {
     return (
         <AddNewSleep {...{addSleepHandler, date1: el.dateTime1, date2: el.dateTime2, night: el.isNight, id: `${id}`}} />
     );
-};
-
-const RealtimeSleepTrack = ({addItem}) => {
-    const [trackerInfo, setTrackerInfo] = useStateWithLocalStorage('trackerEnabled', {isEnabled: false});
-    const [isNight, setIsNight] = useState(true);
-
-    const endSleepHandler = () => {
-        const dateTime1 = moment(trackerInfo.startDate).format("DD-MM-YYYY HH:mm");
-        const dateTime2 = moment().format("DD-MM-YYYY HH:mm");
-        const item = {dateTime1, dateTime2, isNight: trackerInfo.isNight, id: Date.now()}
-        setTrackerInfo({isEnabled: false});
-        addItem(item);
-    };
-
-    if (trackerInfo.isEnabled) {
-        return (
-            <div>
-                <p>{`${moment(trackerInfo.startDate).format("DD.MM(HH:mm)")}, прошло ${humTime(moment.duration(moment().diff(moment(trackerInfo.startDate))).asMinutes())}`}</p>
-                <button type="button" className="btn btn-primary btn-block" onClick={endSleepHandler}>Проснуться</button>
-            </div>
-        );
-    }
-    else {
-        return (
-            <div>
-                <div className="form-check form-check-inline">
-                    <input className="form-check-input" type="radio" name="track" value="option1" checked={isNight} onChange={()=>setIsNight(true)}/>
-                    <label className="form-check-label" htmlFor="inlineRadio1">Ночной</label>
-                </div>
-                <div className="form-check form-check-inline">
-                    <input className="form-check-input" type="radio" name="track" value="option2" checked={!isNight} onChange={()=>setIsNight(false)}/>
-                    <label className="form-check-label" htmlFor="inlineRadio2">Дневной</label>
-                </div>
-                <SpaceFiller/>
-                <button type="button" className="btn btn-primary btn-block" onClick={()=>setTrackerInfo({isEnabled: true, startDate: Date.now(), isNight})}>Заснуть</button>
-            </div>
-        );
-    }
 };
 
 const App = () => {
@@ -285,8 +278,6 @@ const App = () => {
 
     return (
         <React.Fragment>
-            <SpaceFiller/>
-            <RealtimeSleepTrack addItem={addSleepHandler}/>
             <SpaceFiller/>
             <Info row={globalInfo} />
             <SpaceFiller/>

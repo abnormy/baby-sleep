@@ -207,11 +207,33 @@ var ProgressBars = function ProgressBars(_ref4) {
         return { percent: 100 - Math.floor(percent), totalDaySleep: totalDaySleep };
     };
 
+    var processDayCount = function processDayCount(d) {
+        var totalDaySleepCount = d.filter(function (i) {
+            return isDayDataForProgress(i, now);
+        }).reduce(function (sum, i) {
+            return sum + 1;
+        }, 0);
+
+        var possibleSleepCount = row.count[0];
+        var left = possibleSleepCount - totalDaySleepCount;
+
+        if (left <= 0) {
+            return { percent: 100, totalDaySleepCount: totalDaySleepCount };
+        }
+
+        var percent = left * 100 / possibleSleepCount;
+
+        return { percent: 100 - Math.floor(percent), totalDaySleepCount: totalDaySleepCount };
+    };
+
     var nightProgressData = useMemo(function () {
         return processNight(data);
     }, [data, now]);
     var dayProgressData = useMemo(function () {
         return processDay(data);
+    }, [data, now]);
+    var dayProgressCountData = useMemo(function () {
+        return processDayCount(data);
     }, [data, now]);
 
     return React.createElement(
@@ -253,6 +275,41 @@ var ProgressBars = function ProgressBars(_ref4) {
                 { className: "progress-bar", style: { width: dayProgressData.percent + '%' }, role: "progressbar" },
                 humTime(dayProgressData.totalDaySleep)
             )
+        ),
+        React.createElement(SpaceFiller, null),
+        React.createElement(
+            "p",
+            null,
+            "\u0414\u043D\u0435\u0432\u043D\u043E\u0439 \u0441\u043E\u043D \u043A\u043E\u043B-\u0432\u043E(",
+            row.count[0],
+            " - ",
+            row.count[1],
+            "):"
+        ),
+        React.createElement(
+            "div",
+            { className: "progress" },
+            React.createElement(
+                "div",
+                { className: "progress-bar", style: { width: dayProgressCountData.percent + '%' }, role: "progressbar" },
+                dayProgressCountData.totalDaySleepCount,
+                " \u0440\u0430\u0437"
+            )
+        ),
+        React.createElement(SpaceFiller, null),
+        React.createElement(
+            "div",
+            null,
+            React.createElement(
+                "span",
+                null,
+                "\u041E\u0431\u0449\u0438\u0439 \u0441\u043E\u043D: ",
+                React.createElement(
+                    "span",
+                    null,
+                    humTime(nightProgressData.totalNightSleep + dayProgressData.totalDaySleep)
+                )
+            )
         )
     );
 };
@@ -266,6 +323,7 @@ var RecordGrid = function RecordGrid(_ref5) {
     var row = function row(_ref6) {
         var id = _ref6.id,
             startDate = _ref6.startDate,
+            endDate = _ref6.endDate,
             duration = _ref6.duration,
             isNight = _ref6.isNight,
             editHandler = _ref6.editHandler,
@@ -281,12 +339,17 @@ var RecordGrid = function RecordGrid(_ref5) {
             { className: "row", key: id, style: style },
             React.createElement(
                 "div",
-                { className: "col-3 text-center align-self-center" },
+                { className: "col-2 text-center align-self-center" },
                 startDate
             ),
             React.createElement(
                 "div",
-                { className: "col-4 text-center align-self-center" },
+                { className: "col-2 text-center align-self-center" },
+                endDate
+            ),
+            React.createElement(
+                "div",
+                { className: "col-3 text-center align-self-center" },
                 duration
             ),
             React.createElement(
@@ -318,6 +381,7 @@ var RecordGrid = function RecordGrid(_ref5) {
         return row({
             id: i.id,
             startDate: moment(i.dateTime1, "DD-MM-YYYY HH:mm").format("HH:mm"),
+            endDate: moment(i.dateTime2, "DD-MM-YYYY HH:mm").format("HH:mm"),
             duration: humTime(timeOfSleep(i)),
             isNight: i.isNight,
             editHandler: function editHandler(e) {
@@ -372,102 +436,26 @@ var Edit = function Edit(_ref7) {
     return React.createElement(AddNewSleep, { addSleepHandler: addSleepHandler, date1: el.dateTime1, date2: el.dateTime2, night: el.isNight, id: "" + id });
 };
 
-var RealtimeSleepTrack = function RealtimeSleepTrack(_ref8) {
-    var addItem = _ref8.addItem;
-
-    var _useStateWithLocalSto = useStateWithLocalStorage('trackerEnabled', { isEnabled: false }),
-        _useStateWithLocalSto2 = _slicedToArray(_useStateWithLocalSto, 2),
-        trackerInfo = _useStateWithLocalSto2[0],
-        setTrackerInfo = _useStateWithLocalSto2[1];
-
-    var _useState9 = useState(true),
-        _useState10 = _slicedToArray(_useState9, 2),
-        isNight = _useState10[0],
-        setIsNight = _useState10[1];
-
-    var endSleepHandler = function endSleepHandler() {
-        var dateTime1 = moment(trackerInfo.startDate).format("DD-MM-YYYY HH:mm");
-        var dateTime2 = moment().format("DD-MM-YYYY HH:mm");
-        var item = { dateTime1: dateTime1, dateTime2: dateTime2, isNight: trackerInfo.isNight, id: Date.now() };
-        setTrackerInfo({ isEnabled: false });
-        addItem(item);
-    };
-
-    if (trackerInfo.isEnabled) {
-        return React.createElement(
-            "div",
-            null,
-            React.createElement(
-                "p",
-                null,
-                moment(trackerInfo.startDate).format("DD.MM(HH:mm)") + ", \u043F\u0440\u043E\u0448\u043B\u043E " + humTime(moment.duration(moment().diff(moment(trackerInfo.startDate))).asMinutes())
-            ),
-            React.createElement(
-                "button",
-                { type: "button", className: "btn btn-primary btn-block", onClick: endSleepHandler },
-                "\u041F\u0440\u043E\u0441\u043D\u0443\u0442\u044C\u0441\u044F"
-            )
-        );
-    } else {
-        return React.createElement(
-            "div",
-            null,
-            React.createElement(
-                "div",
-                { className: "form-check form-check-inline" },
-                React.createElement("input", { className: "form-check-input", type: "radio", name: "track", value: "option1", checked: isNight, onChange: function onChange() {
-                        return setIsNight(true);
-                    } }),
-                React.createElement(
-                    "label",
-                    { className: "form-check-label", htmlFor: "inlineRadio1" },
-                    "\u041D\u043E\u0447\u043D\u043E\u0439"
-                )
-            ),
-            React.createElement(
-                "div",
-                { className: "form-check form-check-inline" },
-                React.createElement("input", { className: "form-check-input", type: "radio", name: "track", value: "option2", checked: !isNight, onChange: function onChange() {
-                        return setIsNight(false);
-                    } }),
-                React.createElement(
-                    "label",
-                    { className: "form-check-label", htmlFor: "inlineRadio2" },
-                    "\u0414\u043D\u0435\u0432\u043D\u043E\u0439"
-                )
-            ),
-            React.createElement(SpaceFiller, null),
-            React.createElement(
-                "button",
-                { type: "button", className: "btn btn-primary btn-block", onClick: function onClick() {
-                        return setTrackerInfo({ isEnabled: true, startDate: Date.now(), isNight: isNight });
-                    } },
-                "\u0417\u0430\u0441\u043D\u0443\u0442\u044C"
-            )
-        );
-    }
-};
-
 var App = function App() {
-    var _useStateWithLocalSto3 = useStateWithLocalStorage('babySleepData'),
-        _useStateWithLocalSto4 = _slicedToArray(_useStateWithLocalSto3, 2),
-        data = _useStateWithLocalSto4[0],
-        setData = _useStateWithLocalSto4[1];
+    var _useStateWithLocalSto = useStateWithLocalStorage('babySleepData'),
+        _useStateWithLocalSto2 = _slicedToArray(_useStateWithLocalSto, 2),
+        data = _useStateWithLocalSto2[0],
+        setData = _useStateWithLocalSto2[1];
 
-    var _useState11 = useState(moment()),
+    var _useState9 = useState(moment()),
+        _useState10 = _slicedToArray(_useState9, 2),
+        now = _useState10[0],
+        setNow = _useState10[1];
+
+    var _useState11 = useState(false),
         _useState12 = _slicedToArray(_useState11, 2),
-        now = _useState12[0],
-        setNow = _useState12[1];
+        edit = _useState12[0],
+        setEdit = _useState12[1];
 
-    var _useState13 = useState(false),
+    var _useState13 = useState(0),
         _useState14 = _slicedToArray(_useState13, 2),
-        edit = _useState14[0],
-        setEdit = _useState14[1];
-
-    var _useState15 = useState(0),
-        _useState16 = _slicedToArray(_useState15, 2),
-        id = _useState16[0],
-        setId = _useState16[1];
+        id = _useState14[0],
+        setId = _useState14[1];
 
     var addSleepHandler = function addSleepHandler(sleepItem) {
         setData([].concat(_toConsumableArray(data), [sleepItem]));
@@ -499,8 +487,6 @@ var App = function App() {
     return React.createElement(
         React.Fragment,
         null,
-        React.createElement(SpaceFiller, null),
-        React.createElement(RealtimeSleepTrack, { addItem: addSleepHandler }),
         React.createElement(SpaceFiller, null),
         React.createElement(Info, { row: globalInfo }),
         React.createElement(SpaceFiller, null),
